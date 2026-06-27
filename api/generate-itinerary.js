@@ -46,23 +46,33 @@ Rules:
 - ALL places must REALLY exist in ${destination}
 - Return ONLY the JSON object`;
 
-  // Try both old and new endpoints + all models
-  const attempts = [
-    { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}` },
-    { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}` },
-    { url: `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}` },
-    { url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}` },
-    // New endpoint for newer key format
-    { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}` },
+  const models = [
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+    "gemini-2.0-flash-lite",
+    "gemini-1.5-flash-8b",
   ];
 
   const errors = [];
 
-  for (const attempt of attempts) {
+  // Detect key type: AQ. prefix = Authorization key, AIza = Standard key
+  const isAuthKey = apiKey.startsWith("AQ.");
+
+  for (const model of models) {
     try {
-      const geminiRes = await fetch(attempt.url, {
+      // Authorization keys use "Authorization: Bearer" header instead of ?key=
+      const url = isAuthKey
+        ? `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`
+        : `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+
+      const headers = {
+        "Content-Type": "application/json",
+        ...(isAuthKey ? { "Authorization": `Bearer ${apiKey}` } : {}),
+      };
+
+      const geminiRes = await fetch(url, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
           generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
@@ -72,7 +82,7 @@ Rules:
       const data = await geminiRes.json();
 
       if (!geminiRes.ok) {
-        errors.push(`${attempt.url.split("/models/")[1]?.split(":")[0]}: ${data?.error?.message ?? geminiRes.status}`);
+        errors.push(`${model}: ${data?.error?.message ?? geminiRes.status}`);
         continue;
       }
 
@@ -80,9 +90,9 @@ Rules:
       const cleaned = raw.replace(/```(?:json)?/g, "").trim();
       const parsed = JSON.parse(cleaned);
 
-      return res.status(200).json({ days: parsed.days });
+      return res.status(200).json({ days: parsed.days, model });
     } catch (e) {
-      errors.push(e.message);
+      errors.push(`${model}: ${e.message}`);
       continue;
     }
   }
