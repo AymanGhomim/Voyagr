@@ -1,6 +1,5 @@
-// Vercel Serverless Function — calls Gemini from server side (no CORS/allowlist issues)
+// Vercel Serverless Function — calls Gemini from server side
 export default async function handler(req, res) {
-  // CORS headers
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
   res.setHeader("Access-Control-Allow-Headers", "Content-Type");
@@ -49,10 +48,14 @@ Rules:
 - Return ONLY the JSON object`;
 
   const models = [
-    "gemini-1.5-flash-latest",
+    "gemini-2.0-flash",
     "gemini-2.0-flash-lite",
-    "gemini-1.5-flash-8b-latest",
+    "gemini-1.5-flash",
+    "gemini-1.5-flash-latest",
+    "gemini-1.5-flash-8b",
   ];
+
+  const errors = [];
 
   for (const model of models) {
     try {
@@ -68,7 +71,11 @@ Rules:
         }
       );
 
-      if (!geminiRes.ok) continue;
+      if (!geminiRes.ok) {
+        const errBody = await geminiRes.json().catch(() => ({}));
+        errors.push(`${model}: HTTP ${geminiRes.status} — ${errBody?.error?.message ?? "unknown"}`);
+        continue;
+      }
 
       const data = await geminiRes.json();
       const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
@@ -76,10 +83,11 @@ Rules:
       const parsed = JSON.parse(cleaned);
 
       return res.status(200).json({ days: parsed.days, model });
-    } catch (_) {
+    } catch (e) {
+      errors.push(`${model}: ${e.message}`);
       continue;
     }
   }
 
-  return res.status(500).json({ error: "All Gemini models failed" });
+  return res.status(500).json({ error: "All Gemini models failed", details: errors });
 }
