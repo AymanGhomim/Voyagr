@@ -1,4 +1,3 @@
-// Vercel Serverless Function — calls Gemini from server side
 export default async function handler(req, res) {
   res.setHeader("Access-Control-Allow-Origin", "*");
   res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
@@ -47,44 +46,43 @@ Rules:
 - ALL places must REALLY exist in ${destination}
 - Return ONLY the JSON object`;
 
-  const models = [
-    "gemini-2.0-flash",
-    "gemini-2.0-flash-lite",
-    "gemini-1.5-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash-8b",
+  // Try both old and new endpoints + all models
+  const attempts = [
+    { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}` },
+    { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}` },
+    { url: `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${apiKey}` },
+    { url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}` },
+    // New endpoint for newer key format
+    { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${apiKey}` },
   ];
 
   const errors = [];
 
-  for (const model of models) {
+  for (const attempt of attempts) {
     try {
-      const geminiRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: prompt }] }],
-            generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
-          }),
-        }
-      );
+      const geminiRes = await fetch(attempt.url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 2048 },
+        }),
+      });
+
+      const data = await geminiRes.json();
 
       if (!geminiRes.ok) {
-        const errBody = await geminiRes.json().catch(() => ({}));
-        errors.push(`${model}: HTTP ${geminiRes.status} — ${errBody?.error?.message ?? "unknown"}`);
+        errors.push(`${attempt.url.split("/models/")[1]?.split(":")[0]}: ${data?.error?.message ?? geminiRes.status}`);
         continue;
       }
 
-      const data = await geminiRes.json();
       const raw = data.candidates?.[0]?.content?.parts?.[0]?.text ?? "";
       const cleaned = raw.replace(/```(?:json)?/g, "").trim();
       const parsed = JSON.parse(cleaned);
 
-      return res.status(200).json({ days: parsed.days, model });
+      return res.status(200).json({ days: parsed.days });
     } catch (e) {
-      errors.push(`${model}: ${e.message}`);
+      errors.push(e.message);
       continue;
     }
   }
