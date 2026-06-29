@@ -11,6 +11,7 @@ import { trips as initialTrips, type Trip, type Day } from "@/lib/trip-data";
 import { useAuth, useAuthUser, type AuthUser } from "@/lib/auth";
 import { AuthModal } from "@/components/voyage/AuthModal";
 import { ManualPlanModal } from "@/components/voyage/ManualPlanModal";
+import { BookingModal } from "@/components/voyage/BookingModal";
 import { PlaceImage } from "@/components/voyage/PlaceImage";
 import { generateItinerary } from "@/lib/ai-planner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -29,6 +30,7 @@ export function Dashboard() {
   const [tripList, setTripList] = useState<Trip[]>(initialTrips);
   const [activeId, setActiveId] = useState(initialTrips[0].id);
   const [aiOpen, setAiOpen] = useState(false);
+  const [bookingOpen, setBookingOpen] = useState(false);
   const [manualOpen, setManualOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -187,6 +189,7 @@ export function Dashboard() {
           />
         )}
         {newOpen && <NewTripModal onClose={() => setNewOpen(false)} onCreate={handleCreate} />}
+        {bookingOpen && <BookingModal trip={trip} onClose={() => setBookingOpen(false)} />}
       </AnimatePresence>
     </div>
   );
@@ -313,15 +316,13 @@ function TripWorkspace({ trip, onOpenAI, onOpenManual, onUpdateTrip }: {
             <button onClick={onOpenAI} className="inline-flex items-center gap-2 rounded-full glass-strong px-4 py-2 text-sm font-medium hover:bg-white/15 transition">
               <Sparkles className="h-4 w-4 text-accent" /> AI plan
             </button>
-            <a
-              href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(trip.destination)}`}
-              target="_blank"
-              rel="noopener noreferrer"
+            <button
+              onClick={() => setBookingOpen(true)}
               className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition hover:opacity-90 active:scale-95"
               style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
             >
               <Ticket className="h-4 w-4" /> Book Trip
-            </a>
+            </button>
           </div>
         </div>
       </motion.div>
@@ -467,18 +468,7 @@ function PlaceCard({ place, index, onRemove }: {
       <div className="absolute right-4 top-4 inline-flex items-center gap-1 rounded-full glass-strong px-3 py-1 text-xs">{place.tag}</div>
       <div className="absolute bottom-4 left-4 right-4">
         <div className="flex items-center gap-2 text-2xl">{place.emoji}<span className="text-base font-semibold">{place.name}</span></div>
-        <div className="flex items-center justify-between mt-1">
-          <p className="inline-flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" /> {place.city}</p>
-          <a
-            href={`https://www.booking.com/searchresults.html?ss=${encodeURIComponent(place.name + " " + place.city)}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={(e) => e.stopPropagation()}
-            className="inline-flex items-center gap-1 rounded-full bg-white text-black px-2.5 py-1 text-[10px] font-semibold hover:opacity-90 transition"
-          >
-            <Ticket className="h-3 w-3" /> Book
-          </a>
-        </div>
+        <p className="mt-1 inline-flex items-center gap-1 text-xs text-muted-foreground"><MapPin className="h-3 w-3" /> {place.city}</p>
       </div>
     </motion.div>
   );
