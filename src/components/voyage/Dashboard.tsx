@@ -6,12 +6,20 @@ import {
   Plus, Search, Compass, Bell, Settings, Sparkles, MapPin, Clock,
   Send, Wand2, ArrowLeft, X, Loader2, Calendar as CalendarIcon,
   Menu, CheckCircle2, Layers, Satellite, LogOut, LogIn, PenLine, AlertCircle, Ticket,
+  Share2, FileDown, Moon, Sun,
 } from "lucide-react";
 import { trips as initialTrips, type Trip, type Day } from "@/lib/trip-data";
 import { useAuth, useAuthUser, type AuthUser } from "@/lib/auth";
 import { AuthModal } from "@/components/voyage/AuthModal";
 import { ManualPlanModal } from "@/components/voyage/ManualPlanModal";
 import { BookingModal } from "@/components/voyage/BookingModal";
+import { ShareModal } from "@/components/voyage/ShareModal";
+import { WeatherWidget } from "@/components/voyage/WeatherWidget";
+import { CurrencyWidget } from "@/components/voyage/CurrencyWidget";
+import { MapView } from "@/components/voyage/MapView";
+import { BudgetTracker } from "@/components/voyage/BudgetTracker";
+import { OnboardingModal, useOnboarding } from "@/components/voyage/Onboarding";
+import { exportTripPDF } from "@/lib/export-pdf";
 import { PlaceImage } from "@/components/voyage/PlaceImage";
 import { generateItinerary } from "@/lib/ai-planner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -31,6 +39,23 @@ export function Dashboard() {
   const [activeId, setActiveId] = useState(initialTrips[0].id);
   const [aiOpen, setAiOpen] = useState(false);
   const [bookingOpen, setBookingOpen] = useState(false);
+  const [shareOpen, setShareOpen] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => document.documentElement.classList.contains("dark"));
+  const { show: showOnboarding, dismiss: dismissOnboarding } = useOnboarding();
+
+  function toggleDark() {
+    const next = !darkMode;
+    setDarkMode(next);
+    document.documentElement.classList.toggle("dark", next);
+    localStorage.setItem("voyagr_theme", next ? "dark" : "light");
+  }
+
+  // Init theme from localStorage on mount
+  useEffect(() => {
+    const saved = localStorage.getItem("voyagr_theme");
+    if (saved === "dark") { document.documentElement.classList.add("dark"); setDarkMode(true); }
+    else { document.documentElement.classList.remove("dark"); setDarkMode(false); }
+  }, []);
   const [manualOpen, setManualOpen] = useState(false);
   const [newOpen, setNewOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -190,6 +215,8 @@ export function Dashboard() {
         )}
         {newOpen && <NewTripModal onClose={() => setNewOpen(false)} onCreate={handleCreate} />}
         {bookingOpen && <BookingModal trip={trip} onClose={() => setBookingOpen(false)} />}
+        {shareOpen && <ShareModal trip={trip} onClose={() => setShareOpen(false)} />}
+        {showOnboarding && <OnboardingModal onDismiss={dismissOnboarding} />}
       </AnimatePresence>
     </div>
   );
@@ -260,6 +287,9 @@ function SidebarNav({ trips, activeId, onSelect, onNew, user }: {
       </div>
       <div className="mt-3 border-t border-white/5 pt-3 space-y-2">
         <div className="flex items-center justify-between">
+          <button onClick={toggleDark} className="grid h-9 w-9 place-items-center rounded-lg hover:bg-white/5 transition" title="Toggle theme">
+            {darkMode ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </button>
           <button className="grid h-9 w-9 place-items-center rounded-lg hover:bg-white/5 transition" onClick={() => toast("No new notifications 🔔")}><Bell className="h-4 w-4" /></button>
           <button className="grid h-9 w-9 place-items-center rounded-lg hover:bg-white/5 transition" onClick={() => toast("Explore coming soon 🧭")}><Compass className="h-4 w-4" /></button>
           <button className="grid h-9 w-9 place-items-center rounded-lg hover:bg-white/5 transition" onClick={() => toast("Settings coming soon ⚙️")}><Settings className="h-4 w-4" /></button>
@@ -316,6 +346,14 @@ function TripWorkspace({ trip, onOpenAI, onOpenManual, onUpdateTrip }: {
             <button onClick={onOpenAI} className="inline-flex items-center gap-2 rounded-full glass-strong px-4 py-2 text-sm font-medium hover:bg-white/15 transition">
               <Sparkles className="h-4 w-4 text-accent" /> AI plan
             </button>
+            <button onClick={() => setShareOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-accent transition">
+              <Share2 className="h-4 w-4" /> Share
+            </button>
+            <button onClick={() => exportTripPDF(trip)}
+              className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-accent transition">
+              <FileDown className="h-4 w-4" /> PDF
+            </button>
             <button
               onClick={() => setBookingOpen(true)}
               className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition hover:opacity-90 active:scale-95"
@@ -334,7 +372,18 @@ function TripWorkspace({ trip, onOpenAI, onOpenManual, onUpdateTrip }: {
         <StatCard label="Days" value={trip.days.length > 0 ? trip.days.length.toString() : "—"} hint={trip.days.length > 0 ? "planned" : "draft"} />
       </div>
 
-      <MapPanel />
+      {/* Weather + Currency + Map + Budget */}
+      <div className="space-y-4">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Weather Forecast</p>
+          <WeatherWidget destination={trip.destination} dates={trip.dates} />
+        </div>
+        <div className="grid gap-4 md:grid-cols-2">
+          <CurrencyWidget destination={trip.destination} />
+          <BudgetTracker budget={trip.budget} />
+        </div>
+        <MapView destination={trip.destination} days={trip.days} />
+      </div>
 
       {/* Itinerary */}
       <div className="space-y-6">
@@ -387,54 +436,6 @@ function StatCard({ label, value, hint }: { label: string; value: string; hint: 
       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
       <p className="mt-3 text-3xl font-semibold">{value}</p>
       <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
-    </div>
-  );
-}
-
-function MapPanel() {
-  const [mapStyle, setMapStyle] = useState<"default" | "satellite" | "terrain">("default");
-  const pins = [{ x: 22, y: 45 }, { x: 38, y: 60 }, { x: 55, y: 38 }, { x: 72, y: 55 }, { x: 84, y: 70 }];
-  const bg: Record<string, string> = {
-    default: "radial-gradient(600px 300px at 30% 50%, oklch(0.7 0.18 240 / 0.25), transparent 60%), radial-gradient(500px 300px at 70% 60%, oklch(0.78 0.18 45 / 0.18), transparent 60%)",
-    satellite: "radial-gradient(600px 300px at 30% 50%, oklch(0.32 0.06 145 / 0.6), transparent 60%), radial-gradient(500px 300px at 70% 60%, oklch(0.22 0.04 200 / 0.5), transparent 60%)",
-    terrain: "radial-gradient(600px 300px at 30% 50%, oklch(0.5 0.1 100 / 0.4), transparent 60%), radial-gradient(500px 300px at 70% 60%, oklch(0.45 0.08 60 / 0.35), transparent 60%)",
-  };
-  return (
-    <div className="glass relative h-72 overflow-hidden rounded-3xl">
-      <motion.div key={mapStyle} initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.5 }} className="absolute inset-0" style={{ background: bg[mapStyle] }} />
-      <svg className="absolute inset-0 h-full w-full opacity-50" viewBox="0 0 100 60" preserveAspectRatio="none">
-        <defs>
-          <pattern id="grid" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M6 0H0V6" fill="none" stroke="oklch(1 0 0 / 0.06)" strokeWidth="0.2" /></pattern>
-          <linearGradient id="routegrad" x1="0" x2="1"><stop offset="0" stopColor="oklch(0.72 0.2 295)" /><stop offset="1" stopColor="oklch(0.78 0.18 45)" /></linearGradient>
-        </defs>
-        <rect width="100" height="60" fill="url(#grid)" />
-        <path d="M22 45 Q 30 30, 38 60 T 55 38 T 72 55 T 84 70" fill="none" stroke="url(#routegrad)" strokeWidth="0.6" strokeDasharray="1 1.4" />
-      </svg>
-      {pins.map((p, i) => (
-        <div key={i} className="absolute" style={{ left: `${p.x}%`, top: `${p.y}%` }}>
-          <div className="relative -translate-x-1/2 -translate-y-1/2">
-            <div className="absolute -inset-2 rounded-full pulse-pin" style={{ background: "oklch(0.78 0.18 45 / 0.25)" }} />
-            <div className="relative grid h-3 w-3 place-items-center rounded-full bg-accent shadow-[0_0_16px_oklch(0.78_0.18_45)]" />
-          </div>
-        </div>
-      ))}
-      <div className="absolute left-5 top-5 glass-strong rounded-xl px-3 py-2 text-xs"><span className="text-muted-foreground">Route · </span>5 stops · 47 km</div>
-      <div className="absolute right-5 top-5 flex gap-2">
-        {(["satellite", "terrain"] as const).map((style) => (
-          <button key={style} onClick={() => setMapStyle(mapStyle === style ? "default" : style)}
-            className={`glass-strong rounded-lg px-3 py-1.5 text-xs capitalize transition flex items-center gap-1 ${mapStyle === style ? "ring-1 ring-primary/60 text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-            {style === "satellite" ? <Satellite className="h-3 w-3" /> : <Layers className="h-3 w-3" />} {style}
-          </button>
-        ))}
-      </div>
-      <AnimatePresence>
-        {mapStyle !== "default" && (
-          <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 4 }}
-            className="absolute bottom-5 right-5 glass-strong rounded-lg px-2 py-1 text-[10px] uppercase tracking-widest text-muted-foreground">
-            {mapStyle} view
-          </motion.div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }
