@@ -144,6 +144,8 @@ export function Dashboard() {
       onSelect={(id) => { setActiveId(id); setMobileMenuOpen(false); }}
       onNew={() => { setNewOpen(true); setMobileMenuOpen(false); }}
       user={user}
+      darkMode={darkMode}
+      toggleDark={toggleDark}
     />
   );
 
@@ -190,6 +192,8 @@ export function Dashboard() {
             onOpenAI={() => setAiOpen(true)}
             onOpenManual={() => setManualOpen(true)}
             onUpdateTrip={(updated) => updateTrip(activeId, updated)}
+            onShare={() => setShareOpen(true)}
+            onBook={() => setBookingOpen(true)}
           />
         </main>
         <ChatPanel tripTitle={trip.title} user={user} />
@@ -223,10 +227,11 @@ export function Dashboard() {
 }
 
 /* ─── Sidebar ─────────────────────────────────────── */
-function SidebarNav({ trips, activeId, onSelect, onNew, user }: {
+function SidebarNav({ trips, activeId, onSelect, onNew, user, darkMode, toggleDark }: {
   trips: Trip[]; activeId: string;
   onSelect: (id: string) => void; onNew: () => void;
   user: AuthUser | null;
+  darkMode: boolean; toggleDark: () => void;
 }) {
   const [search, setSearch] = useState("");
   const { logout } = useAuth();
@@ -310,9 +315,10 @@ function SidebarNav({ trips, activeId, onSelect, onNew, user }: {
 }
 
 /* ─── Trip Workspace ─────────────────────────────── */
-function TripWorkspace({ trip, onOpenAI, onOpenManual, onUpdateTrip }: {
+function TripWorkspace({ trip, onOpenAI, onOpenManual, onUpdateTrip, onShare, onBook }: {
   trip: Trip; onOpenAI: () => void; onOpenManual: () => void;
   onUpdateTrip: (patch: Partial<Trip>) => void;
+  onShare: () => void; onBook: () => void;
 }) {
   const removePlace = (dayIdx: number, placeId: string) => {
     const newDays = trip.days.map((d, i) =>
@@ -346,7 +352,7 @@ function TripWorkspace({ trip, onOpenAI, onOpenManual, onUpdateTrip }: {
             <button onClick={onOpenAI} className="inline-flex items-center gap-2 rounded-full glass-strong px-4 py-2 text-sm font-medium hover:bg-white/15 transition">
               <Sparkles className="h-4 w-4 text-accent" /> AI plan
             </button>
-            <button onClick={() => setShareOpen(true)}
+            <button onClick={onShare}
               className="inline-flex items-center gap-2 rounded-full border border-border px-4 py-2 text-sm font-medium hover:bg-accent transition">
               <Share2 className="h-4 w-4" /> Share
             </button>
@@ -355,7 +361,7 @@ function TripWorkspace({ trip, onOpenAI, onOpenManual, onUpdateTrip }: {
               <FileDown className="h-4 w-4" /> PDF
             </button>
             <button
-              onClick={() => setBookingOpen(true)}
+              onClick={onBook}
               className="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold transition hover:opacity-90 active:scale-95"
               style={{ background: "var(--primary)", color: "var(--primary-foreground)" }}
             >

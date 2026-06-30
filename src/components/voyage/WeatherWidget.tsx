@@ -101,7 +101,7 @@ export function WeatherWidget({ destination, dates }: { destination: string; dat
           return (
             <div key={d.date} className="flex flex-col items-center gap-1 rounded-xl border border-border bg-card px-3 py-2.5 text-center min-w-[72px]">
               <p className="text-[10px] text-muted-foreground">{shortDate}</p>
-              <Icon className="h-5 w-5 text-foreground/70" title={label} />
+              <Icon className="h-5 w-5 text-foreground/70" aria-label={label} />
               <p className="text-xs font-semibold">{d.max}°</p>
               <p className="text-[10px] text-muted-foreground">{d.min}°</p>
             </div>
