@@ -1,7 +1,7 @@
-import santorini from "@/assets/hero-santorini.jpg";
-import tokyo from "@/assets/place-tokyo.jpg";
-import bali from "@/assets/place-bali.jpg";
-import iceland from "@/assets/place-iceland.jpg";
+import santorini from "@/assets/hero-santorini.webp";
+import tokyo from "@/assets/place-tokyo.webp";
+import bali from "@/assets/place-bali.webp";
+import iceland from "@/assets/place-iceland.webp";
 import { getPlaceImage } from "@/lib/place-image";
 
 export type Place = {

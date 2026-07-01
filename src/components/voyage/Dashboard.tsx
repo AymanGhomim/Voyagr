@@ -26,11 +26,10 @@ const BudgetTracker = lazy(() => import("@/components/voyage/BudgetTracker").the
 const OnboardingModal = lazy(() => import("@/components/voyage/Onboarding").then(m => ({ default: m.OnboardingModal })));
 import { PlaceImage } from "@/components/voyage/PlaceImage";
 import { generateItinerary } from "@/lib/ai-planner";
-import { Sheet, SheetContent } from "@/components/ui/sheet";
-import santorini from "@/assets/hero-santorini.jpg";
-import tokyo from "@/assets/place-tokyo.jpg";
-import bali from "@/assets/place-bali.jpg";
-import iceland from "@/assets/place-iceland.jpg";
+import santorini from "@/assets/hero-santorini.webp";
+import tokyo from "@/assets/place-tokyo.webp";
+import bali from "@/assets/place-bali.webp";
+import iceland from "@/assets/place-iceland.webp";
 
 const COVERS = [santorini, tokyo, bali, iceland];
 
@@ -182,11 +181,24 @@ export function Dashboard() {
         </div>
       </header>
 
-      <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-72 border-white/10 bg-background/95 p-0 backdrop-blur-2xl">
-          {sidebarContent}
-        </SheetContent>
-      </Sheet>
+      <AnimatePresence>
+        {mobileMenuOpen && (
+          <>
+            <motion.div
+              className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              onClick={() => setMobileMenuOpen(false)}
+            />
+            <motion.div
+              className="fixed left-0 top-0 z-50 h-full w-72 border-r border-border bg-background/95 backdrop-blur-2xl lg:hidden"
+              initial={{ x: -288 }} animate={{ x: 0 }} exit={{ x: -288 }}
+              transition={{ type: "spring", damping: 28, stiffness: 300 }}
+            >
+              {sidebarContent}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
 
       <div className="relative z-10 mx-auto flex max-w-[1600px] gap-4 p-4 pt-0 lg:pt-4">
         <div className="hidden lg:block">{sidebarContent}</div>

@@ -5,10 +5,10 @@ import { ArrowRight, Sparkles, Users, Map, Wand2, MessageSquare, LogOut, User } 
 import { useAuth, useAuthUser } from "@/lib/auth";
 import { AuthModal } from "@/components/voyage/AuthModal";
 import { toast } from "sonner";
-import heroImg from "@/assets/hero-santorini.jpg";
-import tokyo from "@/assets/place-tokyo.jpg";
-import bali from "@/assets/place-bali.jpg";
-import iceland from "@/assets/place-iceland.jpg";
+import heroImg from "@/assets/hero-santorini.webp";
+import tokyo from "@/assets/place-tokyo.webp";
+import bali from "@/assets/place-bali.webp";
+import iceland from "@/assets/place-iceland.webp";
 
 export function Landing() {
   const [authOpen, setAuthOpen] = useState(false);
