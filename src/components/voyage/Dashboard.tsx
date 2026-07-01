@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, memo } from "react";
 import { Link } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -12,14 +12,18 @@ import { trips as initialTrips, type Trip, type Day } from "@/lib/trip-data";
 import { useAuth, useAuthUser, type AuthUser } from "@/lib/auth";
 import { AuthModal } from "@/components/voyage/AuthModal";
 import { ManualPlanModal } from "@/components/voyage/ManualPlanModal";
-import { BookingModal } from "@/components/voyage/BookingModal";
-import { ShareModal } from "@/components/voyage/ShareModal";
-import { WeatherWidget } from "@/components/voyage/WeatherWidget";
-import { CurrencyWidget } from "@/components/voyage/CurrencyWidget";
-import { MapView } from "@/components/voyage/MapView";
-import { BudgetTracker } from "@/components/voyage/BudgetTracker";
-import { OnboardingModal, useOnboarding } from "@/components/voyage/Onboarding";
+import { lazy, Suspense } from "react";
+import { useOnboarding } from "@/components/voyage/Onboarding";
 import { exportTripPDF } from "@/lib/export-pdf";
+
+// Lazy-loaded heavy components
+const BookingModal = lazy(() => import("@/components/voyage/BookingModal").then(m => ({ default: m.BookingModal })));
+const ShareModal = lazy(() => import("@/components/voyage/ShareModal").then(m => ({ default: m.ShareModal })));
+const WeatherWidget = lazy(() => import("@/components/voyage/WeatherWidget").then(m => ({ default: m.WeatherWidget })));
+const CurrencyWidget = lazy(() => import("@/components/voyage/CurrencyWidget").then(m => ({ default: m.CurrencyWidget })));
+const MapView = lazy(() => import("@/components/voyage/MapView").then(m => ({ default: m.MapView })));
+const BudgetTracker = lazy(() => import("@/components/voyage/BudgetTracker").then(m => ({ default: m.BudgetTracker })));
+const OnboardingModal = lazy(() => import("@/components/voyage/Onboarding").then(m => ({ default: m.OnboardingModal })));
 import { PlaceImage } from "@/components/voyage/PlaceImage";
 import { generateItinerary } from "@/lib/ai-planner";
 import { Sheet, SheetContent } from "@/components/ui/sheet";
@@ -218,9 +222,11 @@ export function Dashboard() {
           />
         )}
         {newOpen && <NewTripModal onClose={() => setNewOpen(false)} onCreate={handleCreate} />}
-        {bookingOpen && <BookingModal trip={trip} onClose={() => setBookingOpen(false)} />}
-        {shareOpen && <ShareModal trip={trip} onClose={() => setShareOpen(false)} />}
-        {showOnboarding && <OnboardingModal onDismiss={dismissOnboarding} />}
+        <Suspense fallback={null}>
+          {bookingOpen && <BookingModal trip={trip} onClose={() => setBookingOpen(false)} />}
+          {shareOpen && <ShareModal trip={trip} onClose={() => setShareOpen(false)} />}
+          {showOnboarding && <OnboardingModal onDismiss={dismissOnboarding} />}
+        </Suspense>
       </AnimatePresence>
     </div>
   );
@@ -379,17 +385,19 @@ function TripWorkspace({ trip, onOpenAI, onOpenManual, onUpdateTrip, onShare, on
       </div>
 
       {/* Weather + Currency + Map + Budget */}
-      <div className="space-y-4">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Weather Forecast</p>
-          <WeatherWidget destination={trip.destination} dates={trip.dates} />
+      <Suspense fallback={<div className="h-32 rounded-2xl bg-muted animate-pulse" />}>
+        <div className="space-y-4">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-muted-foreground mb-2">Weather Forecast</p>
+            <WeatherWidget destination={trip.destination} dates={trip.dates} />
+          </div>
+          <div className="grid gap-4 md:grid-cols-2">
+            <CurrencyWidget destination={trip.destination} />
+            <BudgetTracker budget={trip.budget} />
+          </div>
+          <MapView destination={trip.destination} days={trip.days} />
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <CurrencyWidget destination={trip.destination} />
-          <BudgetTracker budget={trip.budget} />
-        </div>
-        <MapView destination={trip.destination} days={trip.days} />
-      </div>
+      </Suspense>
 
       {/* Itinerary */}
       <div className="space-y-6">
@@ -436,7 +444,7 @@ function BudgetCard({ trip }: { trip: Trip }) {
   );
 }
 
-function StatCard({ label, value, hint }: { label: string; value: string; hint: string }) {
+const StatCard = memo(function StatCard({ label, value, hint }: { label: string; value: string; hint: string }) {
   return (
     <div className="glass rounded-3xl p-5">
       <p className="text-xs uppercase tracking-[0.2em] text-muted-foreground">{label}</p>
@@ -444,7 +452,7 @@ function StatCard({ label, value, hint }: { label: string; value: string; hint: 
       <p className="mt-1 text-xs text-muted-foreground">{hint}</p>
     </div>
   );
-}
+});
 
 function PlaceCard({ place, index, onRemove }: {
   place: { id: string; name: string; city: string; emoji: string; tag: string; time: string; image: string };
