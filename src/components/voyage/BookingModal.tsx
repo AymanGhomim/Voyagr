@@ -70,19 +70,19 @@ export function BookingModal({ trip, onClose }: Props) {
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
         <motion.div
-          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-black/10 bg-white text-black shadow-2xl"
+          className="relative w-full max-w-md overflow-hidden rounded-3xl border border-black/[0.08] bg-white text-black shadow-2xl"
           initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: 40, opacity: 0 }}
           transition={{ type: "spring", damping: 26, stiffness: 300 }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between border-b border-black/8 px-6 py-4">
+          <div className="flex items-center justify-between border-b border-black/[0.08] px-6 py-4">
             <div>
               <p className="text-xs font-medium uppercase tracking-widest text-black/40">
                 {step === "details" ? "Trip Details" : step === "payment" ? "Payment" : "Confirmed"}
               </p>
               <h2 className="mt-0.5 text-lg font-semibold">{trip.title}</h2>
             </div>
-            <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full hover:bg-black/5 transition">
+            <button onClick={onClose} className="grid h-8 w-8 place-items-center rounded-full hover:bg-black/[0.04] transition">
               <X className="h-4 w-4" />
             </button>
           </div>
@@ -96,7 +96,7 @@ export function BookingModal({ trip, onClose }: Props) {
                 className="p-6 space-y-5">
 
                 {/* Trip summary */}
-                <div className="rounded-2xl bg-black/4 p-4 space-y-2">
+                <div className="rounded-2xl bg-black/[0.04] p-4 space-y-2">
                   <div className="flex items-center gap-2 text-sm">
                     <Plane className="h-4 w-4 text-black/40" />
                     <span className="font-medium">{trip.destination}</span>
@@ -116,10 +116,10 @@ export function BookingModal({ trip, onClose }: Props) {
                   <label className="text-xs font-semibold uppercase tracking-widest text-black/40">Travelers</label>
                   <div className="mt-2 flex items-center gap-3">
                     <button onClick={() => setTravelers(Math.max(1, travelers - 1))}
-                      className="grid h-9 w-9 place-items-center rounded-full border border-black/10 text-lg hover:bg-black/4 transition">−</button>
+                      className="grid h-9 w-9 place-items-center rounded-full border border-black/[0.08] text-lg hover:bg-black/[0.04] transition">−</button>
                     <span className="w-8 text-center text-lg font-semibold">{travelers}</span>
                     <button onClick={() => setTravelers(Math.min(10, travelers + 1))}
-                      className="grid h-9 w-9 place-items-center rounded-full border border-black/10 text-lg hover:bg-black/4 transition">+</button>
+                      className="grid h-9 w-9 place-items-center rounded-full border border-black/[0.08] text-lg hover:bg-black/[0.04] transition">+</button>
                     <Users className="h-4 w-4 text-black/30 ml-1" />
                   </div>
                 </div>
@@ -130,7 +130,7 @@ export function BookingModal({ trip, onClose }: Props) {
                   <div className="mt-2 grid grid-cols-3 gap-2">
                     {(["single", "double", "suite"] as const).map((r) => (
                       <button key={r} onClick={() => setRoomType(r)}
-                        className={`rounded-xl border py-2.5 text-sm font-medium capitalize transition ${roomType === r ? "border-black bg-black text-white" : "border-black/10 hover:border-black/25"}`}>
+                        className={`rounded-xl border py-2.5 text-sm font-medium capitalize transition ${roomType === r ? "border-black bg-black text-white" : "border-black/[0.08] hover:border-black/25"}`}>
                         {r}
                       </button>
                     ))}
@@ -138,7 +138,7 @@ export function BookingModal({ trip, onClose }: Props) {
                 </div>
 
                 {/* Price */}
-                <div className="flex items-center justify-between rounded-2xl bg-black/4 px-4 py-3">
+                <div className="flex items-center justify-between rounded-2xl bg-black/[0.04] px-4 py-3">
                   <span className="text-sm text-black/50">Estimated total</span>
                   <span className="text-xl font-bold">${total.toLocaleString()}</span>
                 </div>
@@ -184,10 +184,10 @@ export function BookingModal({ trip, onClose }: Props) {
                 </div>
 
                 {/* Summary */}
-                <div className="rounded-2xl bg-black/4 px-4 py-3 space-y-1 text-sm">
+                <div className="rounded-2xl bg-black/[0.04] px-4 py-3 space-y-1 text-sm">
                   <div className="flex justify-between text-black/50"><span>{travelers} traveler{travelers > 1 ? "s" : ""} × {numDays} nights</span><span>${(total * 0.85).toLocaleString()}</span></div>
                   <div className="flex justify-between text-black/50"><span>Taxes & fees</span><span>${(total * 0.15).toLocaleString()}</span></div>
-                  <div className="flex justify-between font-bold pt-1 border-t border-black/8"><span>Total</span><span>${total.toLocaleString()}</span></div>
+                  <div className="flex justify-between font-bold pt-1 border-t border-black/[0.08]"><span>Total</span><span>${total.toLocaleString()}</span></div>
                 </div>
 
                 <button onClick={handleConfirm} disabled={loading}
@@ -212,12 +212,12 @@ export function BookingModal({ trip, onClose }: Props) {
                   <h3 className="text-xl font-bold">Booking Confirmed!</h3>
                   <p className="mt-1 text-sm text-black/50">Your trip to {trip.destination} is all set.</p>
                 </div>
-                <div className="rounded-2xl bg-black/4 px-4 py-3 space-y-1 text-sm">
+                <div className="rounded-2xl bg-black/[0.04] px-4 py-3 space-y-1 text-sm">
                   <div className="flex justify-between"><span className="text-black/50">Reference</span><span className="font-mono font-bold">{bookingRef}</span></div>
                   <div className="flex justify-between"><span className="text-black/50">Dates</span><span>{trip.dates}</span></div>
                   <div className="flex justify-between"><span className="text-black/50">Travelers</span><span>{travelers}</span></div>
                   <div className="flex justify-between"><span className="text-black/50">Room</span><span className="capitalize">{roomType}</span></div>
-                  <div className="flex justify-between font-bold pt-1 border-t border-black/8"><span>Total Paid</span><span>${total.toLocaleString()}</span></div>
+                  <div className="flex justify-between font-bold pt-1 border-t border-black/[0.08]"><span>Total Paid</span><span>${total.toLocaleString()}</span></div>
                 </div>
                 <p className="text-xs text-black/35">A confirmation has been sent to your email.</p>
                 <button onClick={onClose}
@@ -244,5 +244,5 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 function input(error?: string) {
-  return `w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition ${error ? "border-red-400 focus:border-red-500" : "border-black/10 focus:border-black/40"}`;
+  return `w-full rounded-xl border px-3.5 py-2.5 text-sm outline-none transition ${error ? "border-red-400 focus:border-red-500" : "border-black/[0.08] focus:border-black/40"}`;
 }

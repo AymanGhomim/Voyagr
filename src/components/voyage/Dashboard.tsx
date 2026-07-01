@@ -79,8 +79,6 @@ export function Dashboard() {
   if (state.status === "unauthenticated") {
     return (
       <div className="relative flex min-h-screen items-center justify-center overflow-hidden">
-        <div aria-hidden className="pointer-events-none absolute inset-0 opacity-40" style={{ background: "var(--gradient-glow)" }} />
-        <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[600px] w-[900px] -translate-x-1/2 rounded-full opacity-50 blur-3xl gradient-ocean" />
         <motion.div
           initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
           className="relative z-10 glass-strong mx-4 w-full max-w-md rounded-3xl p-10 text-center shadow-card"
@@ -450,7 +448,7 @@ function BudgetCard({ trip }: { trip: Trip }) {
       <p className="mt-3 text-3xl font-semibold">€{trip.budget.spent.toLocaleString()}<span className="text-base text-muted-foreground"> / {trip.budget.total.toLocaleString()}</span></p>
       <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/5">
         <motion.div initial={{ width: 0 }} animate={{ width: `${pct}%` }} transition={{ duration: 1, ease: [0.2, 0.8, 0.2, 1] }}
-          className="h-full rounded-full" style={{ background: isOver ? "var(--destructive)" : "var(--gradient-ocean)" }} />
+          className="h-full rounded-full" style={{ background: isOver ? "var(--destructive)" : "oklch(0 0 0)" }} />
       </div>
     </div>
   );

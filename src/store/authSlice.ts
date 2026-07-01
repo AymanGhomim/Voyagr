@@ -19,12 +19,12 @@ const STORAGE_KEY = "voyagr_auth_user";
 const REGISTRY_KEY = "voyagr_registry";
 
 const AVATAR_COLORS = [
-  "from-blue-400 to-cyan-500",
-  "from-teal-400 to-emerald-500",
-  "from-sky-400 to-blue-500",
-  "from-emerald-400 to-teal-500",
-  "from-cyan-400 to-sky-500",
-  "from-indigo-400 to-blue-500",
+  "from-black to-zinc-700",
+  "from-zinc-800 to-black",
+  "from-zinc-700 to-zinc-900",
+  "from-black to-zinc-800",
+  "from-zinc-900 to-black",
+  "from-zinc-600 to-zinc-900",
 ];
 
 function randomColor() {

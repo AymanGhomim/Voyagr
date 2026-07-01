@@ -28,10 +28,7 @@ export function Landing() {
   return (
     <div className="relative min-h-screen overflow-hidden">
       {/* Aurora glows */}
-      <div aria-hidden className="pointer-events-none absolute -top-40 left-1/2 h-[700px] w-[1100px] -translate-x-1/2 rounded-full opacity-60 blur-3xl"
-        style={{ background: "var(--gradient-ocean)" }} />
-      <div aria-hidden className="pointer-events-none absolute bottom-0 right-0 h-[500px] w-[500px] rounded-full opacity-40 blur-3xl gradient-sunset" />
-
+            
       {/* Nav */}
       <header className="relative z-10 mx-auto flex max-w-7xl items-center justify-between px-6 py-6">
         <Link to="/" className="flex items-center gap-2">
@@ -149,7 +146,7 @@ export function Landing() {
         >
           <div className="glass-strong relative overflow-hidden rounded-3xl shadow-card">
             <img src={heroImg} alt="Santorini at sunset" width={1920} height={1280} className="h-[420px] w-full object-cover md:h-[560px]" />
-            <div className="absolute inset-0 bg-gradient-to-t from-background via-background/30 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
 
             <motion.div
               animate={{ y: [0, -8, 0] }}
@@ -215,7 +212,7 @@ export function Landing() {
             >
               <div className="absolute inset-0 opacity-25">
                 <img src={f.img} alt="" loading="lazy" width={1024} height={1024} className="h-full w-full object-cover" />
-                <div className="absolute inset-0 bg-gradient-to-t from-background via-background/80 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-t from-background to-transparent" />
               </div>
               <div className="relative">
                 <div className="grid h-10 w-10 place-items-center rounded-xl glass-strong">
